@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+telegram-desktop &
+
+while true;
+  do    if (( $(ps -p "$!" -o %mem=) > 8" | bc) ))
+          then  sudo kill "$!"
+                break
+        fi
+  done
+

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+sudo tail -F /var/log/dmesg.log |while read -r line;do printf "\033[38;5;%dm%s\033[0m\n" $(($RANDOM%255)) "$line";done 
+
+
+

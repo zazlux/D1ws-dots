@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# some colors
+red=$'\033[0;31m'
+green=$'\033[0;32m'
+yellox=$'\033[0;33m'
+blue=$'\033[0;34m'
+normal=$'\033[0m'      # No Color
+
+
+# Configuration
+backup_dir="/home/d1ws/backup_dir"
+source_dir="/home/d1ws/source_dir"
+
+# Function to create a backup.
+create_backup() {
+        time_stamp=$(date +"%Y-%m-%d")
+        backup_name="backup_$time_stamp.tar.gz"
+
+        echo  "${yellow}Creating backup${normal}: $backup_name"
+        tar -cpzf "$backup_dir/$backup_name" "$source_dir"
+        echo "${yellow}Backup made with success${normal}: $backup_dir/$backup_name"
+}
+
+# Function to create restore a backup.
+restore_backup() {
+        if [[ -z "$(ls -A "$backup_dir")" ]]; then
+        echo "${red}No backup found in${normal} $backup_dir"
+        exit 3
+        fi
+
+        # List available backups in backup_dir.
+        echo "${blue}Available backups in${normal} $backup_dir"
+        ls -1 "$backup_dir"
+
+        echo "${yellow}Enter the name of the backup to restore${normal}: "
+        read restore_file
+
+        if [[ -f "$backup_dir/$restore_file" ]]; then
+                  echo "${yellow}Restoring backup${normal}: $restore_file"
+                  tar -xzf "$backup_dir/$restore_file" -C "$source_dir"
+                  echo "${yellow}Backup restored to${normal}: $source_dir"
+        else
+                  echo "${red}Backup not found${normal}: $backup_dir/$restore_file"
+                  exit 3
+        fi
+}
+
+# Main menu
+while true; do
+        echo "${green}Backup and Restore Menu${normal}:"
+        echo "${blue}1 - Create Backup${normal}:"
+        echo "${blue}2 - Restore Backup${normal}:"
+        echo "${blue}3 - Exit${normal}:"
+        read -p "Please select an option (1/2/3): " choice
+
+        case $choice in
+                1)
+                       create_backup
+                       ;;
+                2)
+                       restore_backup
+                       ;;
+                3)
+                       echo "${red}Exiting ....right now.${normal}"
+                       exit 0
+                       ;;
+                *)
+                       echo "${green}I dont know how to do that!.${normal}"
+                       ;;
+        esac
+done

@@ -1,0 +1,78 @@
+#!/bin/bash
+###################################################################### 
+#Copyright (C) 2020  Kris Occhipinti
+#https://filmsbykris.com
+
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see <http://www.gnu.org/licenses/>.
+###################################################################### 
+
+
+dir="output"
+mkdir -p "$dir"
+files="$(ls *.{jpg,png,JPG,JPEG,jpeg,gif} 2>/dev/null)"
+functions="grey
+sepia
+resize
+equalize"
+
+function main(){
+  files="$(echo "$files"|fzf -m --prompt "Please Select Images: " )"
+  exit-none "$files"
+
+  func="$(echo "$functions"|fzf --prompt "Select Function: " )"
+  exit-none "$func"
+
+  if [ "$func" = "resize" ];then
+    percent
+  fi
+
+  for img in $files
+  do
+    ext="$(echo "$img"|cut -d\. -f2)"
+    img2="$(echo "$img"|cut -d\. -f1)_$(date +%s).$ext"
+    echo "Converting $img to $dir/${img2}"
+    $func "$img" "$dir/${img2}"
+  done
+}
+
+function percent(){
+  perc="$(seq 1 200|fzf --prompt "Select a Percent")%"
+}
+
+#exit if none selected
+function exit-none(){
+  if [ "$1" = "" ];then
+    echo "None Selected"
+    exit
+  fi
+}
+
+#Image Functions
+function equalize(){
+  convert "$1" -equalize "$2"
+}
+
+function grey(){
+  convert "$1" -colorspace Gray "$2"
+}
+
+function sepia(){
+  convert "$1" -sepia-tone '80%' "$2"
+}
+
+function resize(){
+  convert "$1" -resize "${perc}" "$2"
+}
+
+main

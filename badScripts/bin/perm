@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+ stat --format='%A %a' "$1"
+

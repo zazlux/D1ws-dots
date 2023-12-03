@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#coding:utf-8
+
+#check if ~/.local/bin exist. if not. make one.
+
+[ -d ~/.local/bin ] || mkdir -p ~/.local/bin
+
+# "$1" is the name of the script file we want to create.
+# checking if the file exist
+
+if [ -f  ~/.local/bin/"$1" ]; then
+
+# if the file exist. we print a message.
+
+  1>&2 echo "file already exists"
+
+#if not
+
+else
+
+# we create the file.
+  touch ~/.local/bin/"$1"
+
+# we print the shebang in the file.
+  printf "%s\n\n" "#!/usr/bin/env bash" > ~/.local/bin/"$1"
+
+# we make it executable.
+  chmod +x ~/.local/bin/"$1"
+
+#we open it in the default editor.
+  $EDITOR ~/.local/bin/"$1"
+fi

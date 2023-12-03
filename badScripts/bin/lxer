@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+curl --silent http://lxer.com/ | \
+
+pup 'span.storyheadline text{}'  > $HOME/temp/lxer/endResult.txt && \
+
+while read -r line
+do
+    pv -L 14 -q <<< "$line"
+    sleep 0.7
+    printf '\n'
+done < $HOME/temp/lxer/endResult.txt
+

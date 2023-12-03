@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+dest="$HOME/Downloads/"
+
+while IFS= read -r -d '' f
+  do
+       mime="$(file -b --mime-type "$f")"
+       case $mime in
+           *video/mp4) ffmpeg -i "$f" -vn -acodec libopus "$dest/audio/${f%.*}.opus" ;;
+           *audio/mpeg) ffmpeg -i "$f" -vn -acodec libopus "$dest/audio/${f%.*}.opus" ;;
+           *video/webm) ffmpeg -i "$f" -vn -acodec libopus "$dest/audio/${f%.*}.opus" ;;
+           *) echo "idk its a $mime" ;;
+esac
+done < <(find . -maxdepth 1 -not -path '*/.*' -type f -prune -print0)
+ 
+

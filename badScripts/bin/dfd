@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+df -Th -x tmpfs -x devtmpfs -x vfat --total
+

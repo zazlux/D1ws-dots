@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+time="$(date +%Y-%m)/$(date +%d)"
+image="$HOME/Pictures/Screenshots/$time/$RANDOM"
+mkdir -p $HOME/Pictures/Screenshots/$time/
+scrot -s $image.png
+xclip -selection clipboard -t image/png $image.png

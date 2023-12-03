@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+zathura "/home/d1ws/awk-lab/awk-ebool-lab/The_AWK_Programming_Language.pdf" 
+

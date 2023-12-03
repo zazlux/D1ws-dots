@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+ yt-dlp -g -f bestaudio ytsearch1:'state of trance' | xargs mpv
+

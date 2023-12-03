@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+read -p "Please enter a PID: " proc
+
+pid="$proc"
+
+read -p "Please enter memory quotas in kilobyte: " mem
+
+memquotas="$mem"
+strike=0
+while (kill -0 $pid 2>/dev/null) ; do
+  #get RAM usage in kB
+  ram=$(pmap -x $pid | tail -1 | awk '{print $3}')
+  #compare to threshold, 200,000kB
+  if [[ "$memquotas" -lt $ram ]] ; then
+    strike=$((strike+1))
+    if [[ strike -eq 3 ]] ; then
+       kill $pid
+       echo "the process "$proc" is not running anymore!"
+       exit
+    fi
+  else
+    strike=0
+  fi
+  sleep 5
+done

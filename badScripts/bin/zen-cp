@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+printf "\nCopy files with spaces\n"
+
+mapfile -t SOURCE < <(zenity --file-selection --multiple --separator=$'\n' --title "Select files to copy")
+
+DESTINATION=$(zenity --file-selection --save --directory --title "Destination directory")
+
+cp "${SOURCE[@]}" "$DESTINATION"

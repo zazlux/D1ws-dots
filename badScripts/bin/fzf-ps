@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+ps -eo pid,comm | sed 1d | fzf -m --ansi --color fg:-1,bg:-1,hl:46,fg+:178,bg+:235,hl+:46 --color prompt:94,border:22 --height 40%  --border=rounded --padding=1 --margin=3 --prompt="➤  " --pointer="➤ " --marker="➤ " | xargs -n1 kill 
+

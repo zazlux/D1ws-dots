@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+
+# benchmark_shell.sh
+
+TIMEFORMAT='%Rs'; ITERATIONS=1000
+seq_str=$(seq '1' "$ITERATIONS")
+
+_calca() {
+  awk -v cord="${1}" -v offset="${2}" -v clip="${3}" \
+  'BEGIN{clc=(((cord-offset)*(-1000)+clip)); print clc}'
+}
+
+_calcb() {
+  printf '%.0f' "$(bc <<< "(${1} - ${2}) * -1000 + ${3}")"
+}
+
+time { for i in $seq_str; do
+  : local pos; pos="$(_calca "0.320" "0.35" "32")"; printf '%i' "${pos}"
+done; } > /dev/null
+
+time { for i in $seq_str; do
+  : local pos; pos="$(_calcb "0.320" "0.35" "32")"; printf '%i' "${pos}"
+done; } > /dev/null
+
+time { for i in $seq_str; do
+  :   local pos; pos="$(bc <<< "((0.320 - 0.35) * -1000 + 32)")"; pos="$(printf '%.0f' "${pos}")"; printf '%i' "${pos}"
+done; } > /dev/null
+
+

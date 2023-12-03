@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+ 
+#set candy to first argument
+#default to Twix is none are given
+#candy="${@:-Twix}" #for all arguments
+candy="${1:-Twix}"
+echo "Candy Selected, $candy!"

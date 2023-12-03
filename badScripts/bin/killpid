@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+RCol=$'\033[0m'
+Gre=$'\033[32m'
+Red=$'\033[31m'
+Blu=$'\033[34m'
+Yel=$'\033[33m'
+
+for pid in $(pgrep "$1"); do sleep 1.5; kill -9 $pid 2> /dev/null; done
+
+if [[ "$?" == 0 ]]; then
+    echo "the process ${Blu}${1}${RCol} is not running anymore!."
+fi

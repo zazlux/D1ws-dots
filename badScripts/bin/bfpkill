@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+read -p "Please enter your app name: " comm
+
+pid=$(pgrep -x "$comm")
+
+if pgrep -x "$comm" > /dev/null ; then
+    kill "$pid" || kill -9 "$pid"
+    printf '%s\n' "The app "$comm" is killed!."
+else
+    echo "There is no such "$comm" running!." 
+    echo "Please make sure.it's the right app!." 
+    echo "USAGE: pgrep AppName"
+fi
+

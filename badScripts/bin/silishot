@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+silicon "$1" -o $HOME/Pictures/${1%%.*}.png \
+    --background "#e0ffff" \
+    -l "sh" \
+    --theme "1337" \
+    --shadow-color "#808080" \
+    --shadow-blur-radius 30 \
+    --no-window-controls 2> /dev/null
+

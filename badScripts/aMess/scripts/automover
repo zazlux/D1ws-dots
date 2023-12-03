@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#XDG_DOWNLOAD_DIR="$HOME/Downloads"
+vid="{mp4,mkv,gif,webv}"
+img="{jpg,jpeg,png,webp,}"
+
+mkdir -p $XDG_DOWNLOAD_DIR/{archive,torrent,winbin,deb}
+mkdir -p /mnt/data/vm/iso
+
+iso(){
+  mv $XDG_DOWNLOAD_DIR/*.iso /mnt/data/vm/iso
+  }
+
+torrent(){
+  mv $XDG_DOWNLOAD_DIR/*.torrent $XDG_DOWNLOAD_DIR/torrent
+  }
+
+zip(){
+  mv $XDG_DOWNLOAD_DIR/*.{zip,tar.*,zstd,rar,7z,vdf,ar} mv $XDG_DOWNLOAD_DIR/archive
+  }
+
+exe(){
+  mv $XDG_DOWNLOAD_DIR/*.{exe,msi} $XDG_DOWNLOAD_DIR/winbin
+  }
+
+video(){
+  mv $XDG_DOWNLOAD_DIR/*.$vid $HOME/Videos/
+  }
+
+images(){
+  mv $XDG_DOWNLOAD_DIR/*.$img $HOME/Pictures
+  }
+
+deb(){
+  mv $XDG_DOWNLOAD_DIR/*.deb $XDG_DOWNLOAD_DIR/deb
+  }
+
+if [ -f $1 ] ; then
+    case $1 in
+      $XDG_DOWNLOAD_DIR/*.iso) \
+        iso $1  ;;
+      $XDG_DOWNLOAD_DIR/*.torrent) \
+        torrent $1  ;;
+      $XDG_DOWNLOAD_DIR/*.{exe,msi}) \
+        exe $1  ;;
+      $XDG_DOWNLOAD_DIR/*.$vid) \
+        video $1  ;;
+      $XDG_DOWNLOAD_DIR/*.$img) \
+        images $1 ;;
+      $XDG_DOWNLOAD_DIR/*.deb) \
+        deb $1  ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi

@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+MW=100
+for ((x=0;x<=$MW;x++))
+do
+printf "\e[1;${x}f$o\e[$MH;${x}f$o"
+done

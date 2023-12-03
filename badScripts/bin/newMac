@@ -1,0 +1,6 @@
+#!/bin/sh
+interface=wlp0s20u6
+sudo ip link set "$interface" down
+sudo macchanger -a "$interface"
+sudo ip link set "$interface" up
+

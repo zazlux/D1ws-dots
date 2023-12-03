@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+if [[ -v DEBUG ]]; then
+	set -e
+	set -x
+fi
+
+DL_PATH="$HOME/Music/opus-files"
+
+URL="$(xclip -o)"
+
+if [[ -z "$1" ]]; then
+	AUDIO_FORMAT="opus"
+else
+	AUDIO_FORMAT="$1"
+fi
+
+mkdir -p $DL_PATH
+notify-send --expire-time=4000 --urgency=low "Starting download in format $AUDIO_FORMAT..."
+yt-dlp -ix --audio-quality 0 --audio-format "$AUDIO_FORMAT" "$URL" --paths home:"$DL_PATH"
+
+
+if [ "$?" == "0" ]; then
+	notify-send --expire-time=7000 --urgency=low "Download finished!"
+else
+	notify-send --expire-time=7000 --urgency=low "Download aborted with error code $?"
+fi
+
+

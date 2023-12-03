@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+for pid in $(pgrep "$1"); do sleep 1.5; echo $pid | lolcrab; done
+

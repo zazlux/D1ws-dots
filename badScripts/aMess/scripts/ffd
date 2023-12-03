@@ -1,0 +1,110 @@
+#!/bin/sh
+# Seleccionar ficheros recursivamente debajo
+# Se usa 'bat' para previsualizar ficheros, si no se puede se usa 'lsd' para previsualizar directorios en formato árbol
+# Revisar tambien: https://gitlab.com/chanceboudreaux/rx
+# Dependencies: fd or find, fzf, bat, lsd, tput
+
+. "${XDG_DATA_HOME%/*}/lib/getoptions.sh"
+
+VERSION=0.1
+
+# TODO:
+#	- make find and fd output the files in the same format (fd outputs a trailing / for directories)
+#	- Imágenes en las previsualizaciones con ueberzug
+#	- Being able to pass multiple directories/files as arguments
+FIND='fd'
+FZF='fzf'
+CAT='bat'
+TREE='lsd'
+
+parser() {
+	setup REST help:usage plus:true -- 'Seleccionar ficheros recursivamente debajo con fzf'
+	flag Opt_f -f --fics -- 'Seleccionar de solo ficheros'
+	flag Opt_d -d --dirs -- 'Seleccionar de solo directorios'
+	flag Opt_e -e --editor -- 'Abrir con $EDITOR'
+	# TODO: opciones de ruta relativa y absoluta separadas
+	flag Opt_r -r --path -- 'Mostrar ruta absoluta/relativa desde el argumento'
+	flag Opt_p -p --preview -- 'Ver previsualización'
+	flag Opt_m +m no:' ' -- 'Desactivar selección múltiple'
+	# TODO: --open option
+	disp VERSION --version -- "$(gettext 'Show version')"
+	disp :usage -h --help -- 'Mostrar esta ayuda'
+}
+
+eval "$(getoptions parser) exit 1"
+
+find_args() {
+	# TODO: output null separated files
+	case "$FIND" in
+	(find)
+		find_type_arg='-type'
+		find_or_arg='-or'
+		# TODO: handle with POSIX 'find', GNU find can output '%P' for paths relative to basedir like 'fd', but for POSIX find need to cd into base first, see: https://unix.stackexchange.com/questions/104800/find-output-relative-to-directory
+		FIND_ARGS='! -path '"${dirname:-.}"' -printf %P\n'
+	;;
+	(fd)
+		find_type_arg='--type'
+		find_hidden_arg='--hidden'
+		find_color_arg='--color=never'
+		find_basedir_arg='--base-directory'
+		FIND_ARGS="$find_hidden_arg $find_color_arg --strip-cwd-prefix --no-ignore"
+	;;
+	esac
+	# TODO: Quote dirname, it will fail if it has spaces
+	FIND_ARGS="$find_basedir_arg $dirname $FIND_ARGS"
+	if [ "$Opt_f" ] && [ "$Opt_d" ]; then
+		FIND_ARGS="$FIND_ARGS $find_type_arg f $find_or_arg $find_type_arg d"
+	elif [ "$Opt_d" ]; then
+		FIND_ARGS="$FIND_ARGS $find_type_arg d"
+	elif [ "$Opt_f" ]; then
+		FIND_ARGS="$FIND_ARGS $find_type_arg f"
+	fi
+}
+
+main() {
+	# If no argument, current directory '.', if regular file, use its base directory
+	dirname="${1:-.}"
+	if [ -d "$dirname" ]; then
+		dirname="${dirname%/}/"
+	elif [ -f "$dirname" ]; then  # Use -e ?
+		dirname="${dirname%?"${dirname##*/?}"}"
+	else
+		>&2 printf 'Argument must be a file or directory\n'
+		return 1
+	fi
+
+	: ${Opt_m:=-m}  # By default use multiple selection in fzf
+
+	find_args
+	# TODO: receive null-separated stdin paths from find
+	if [ "$Opt_p" ]; then
+		file_selected=$(
+			"$FIND" $FIND_ARGS \
+				| "$FZF" $Opt_m --height="$(($(tput lines)-1))" --preview-window '60%' --preview "bat --color=always --line-range :100 ""$dirname""{} 2> /dev/null || \
+				lsd --color always --icon always --tree --depth 3 --group-dirs first ""$dirname""{}"
+		)
+	else
+		file_selected=$(
+			"$FIND" $FIND_ARGS \
+				| "$FZF" $Opt_m --height="$(($(tput lines)-1))"
+		)
+	fi
+
+	# TODO: handle multiple selected files
+	if [ "$file_selected" ]; then
+		if [ "$Opt_e" ]; then
+			[ "$1" ] && shift
+			exec "${EDITOR:-nvim}" "${dirname}${file_selected}" "$@"
+		elif [ "$Opt_r" ]; then
+			printf -- "%s\n" "${dirname}${file_selected}"
+		else
+			printf -- "%s\n" "${file_selected}"
+		fi
+	else
+		>&2 printf -- 'No file selected\n'
+		return 2
+	fi
+
+}
+
+main "$@" ||  exit $?

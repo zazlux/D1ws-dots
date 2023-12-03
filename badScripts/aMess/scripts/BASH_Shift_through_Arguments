@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#check for argument
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 name(s)"
+  exit 1
+fi
+
+#loop through all arguments
+while (($#)); do
+  echo "Hello $1"
+  shift
+done

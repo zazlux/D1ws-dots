@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+#xbps-query -Rs . | awk '{print $2}' | fzf -m --ansi --color fg:-1,bg:-1,hl:136,fg+:101,bg+:239,hl+:144 --color prompt:58,border:94 --height 40%  --border=rounded --margin=2 --prompt="➤  " --pointer="➤ " --marker="➤ "| xargs -I{} sudo xbps-install -Sy {}
+
+
+xbps-query -Rs . | awk '{print $2}' | fzf -m --ansi --color fg:-1,bg:-1,hl:136,fg+:101,bg+:239,hl+:144 --color prompt:58,border:94 --height 40%  --border=rounded --margin=2 --prompt="➤  " --pointer="➤ " --marker="➤ "| xargs -I{} sudo xbps-install -Sy {}

@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+wmctrl -l | while read ID _; do
+#  wmctrl -ci "$ID"
+   echo "$ID"
+done 

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#coding:utf-8
+
+package="${1}"
+
+search() {
+  pkg="${1}"
+  result="$(xbps-query -Rs ${pkg})"
+  if [[ -z "${result}" ]]; then
+    echo "Package ${1} not found."
+  else
+    echo "${result}"
+  fi
+}
+
+search "${package}"

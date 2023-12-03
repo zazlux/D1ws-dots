@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+remove_temp_dir() {
+    rm -rf "$D"
+}
+
+if ! hash ttyrec 2> /dev/null; then
+    echo "Missing ttyrec"
+    exit
+fi
+if [[ ! -f ~/repo/ttygif/ttygif ]]; then
+    echo "Missing ~/repo/ttygif/ttygif"
+    exit
+fi
+if ! hash gifsicle 2> /dev/null; then
+    echo "Missing gifsicle"
+    exit
+fi
+D=$(mktemp -d)
+trap remove_temp_dir SIGINT SIGTERM
+ttyrec "$D/ttyrecord"
+(
+    cd "$D" || exit
+    ~/repo/ttygif/ttygif ttyrecord
+    ~/repo/ttygif/concat.sh ttyrecord.gif
+    gifsicle --optimize=3 ttyrecord.gif
+    mv ttyrecord.gif ~
+)
+echo "Created ~/ttyrecord.gif"

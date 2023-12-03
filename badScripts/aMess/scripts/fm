@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# Fuzzy find music with a preview
+
+shopt -s nullglob
+
+dep_ck () {
+    for dep; do
+	if ! command -v "$dep" 1>/dev/null; then
+	    printf "%s is not installed\n" "$dep" >&2
+	    exit
+	fi
+    done
+    unset dep
+}
+dep_ck "mpv" "fzf" "fzf-ueberzogen.sh"
+
+while [ ! $# -eq 0 ]; do
+    case "$1" in
+	--music | -m)
+	    cd ~/Music || exit
+	    ;;
+    esac
+    shift
+done
+
+# Preview
+
+function draw_preview {
+
+    dirname=$(dirname "$@")
+    filename="./$@"
+
+    # Print audio metadata using tinytag
+    if ! [ $(file -b --mime-type "$filename") = "text/plain" ]; then
+	data=$(python3 -m tinytag "$filename")
+	title=$(echo $data | jq -r .title)
+	artist=$(echo $data | jq -r .artist)
+	genre=$(echo $data | jq -r .genre)
+	duration=$(date -d@$(echo $data | jq -r .duration) -u +%M:%S)
+	volume=$(amixer -D pulse sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }')
+	blue='\033[0;34m'
+	default="\033[0m" # No Color
+
+	printf "${blue}Title:  ${default}%s\n" "$title"
+	printf "${blue}Artist: ${default}%s\n" "$artist"
+	printf "${blue}Genre:  ${default}%s\n" "$genre"
+	printf "${blue}Time:   ${default}%s\n" "$duration"
+	printf "${blue}Volume: ${default}%s" "$volume"
+    else
+	cat "$filename"
+    fi
+}
+
+# fzf interface and options
+options="--color=always --type f --exclude lyrics --exclude '*.png'"
+FZF_DEFAULT_COMMAND="LS_COLORS=$LS_COLORS:'di=0;34' fdfind $options | shuf"
+
+export -f draw_preview
+query=$(fzf-ueberzogen.sh --ansi --exact --print-query -0 -1 \
+	     --color 'fg+:#edb443,fg:#949494,fg+:#949494,preview-bg:#000000,border:#0a3749' \
+	     --preview 'draw_preview {}' \
+	     --preview-window "top,23%" \
+	     --bind 'alt-a:select-all' \
+	     --bind 'alt-u:deselect-all' \
+	     --bind 'alt-w:execute-silent(echo $PWD/{+} | xclip -sel clip)' \
+	     --bind 'alt-s:execute-silent(for i in {+}; do echo "$PWD/$i"; done | xclip -sel clip)')
+
+file=$(echo "$query" | cut -d' ' -f1- | tail -1)
+# https://github.com/junegunn/fzf/issues/1693
+match=$(echo "$query" | wc -l)
+
+
+# 2+ matches means candidates were marked with TAB/C-i, so add those
+# to the playlist
+if [[ $match -gt 2 ]]; then
+    IFS=$'\n'
+    playlist=$(for i in $query; do
+		   if [ -f "$i" ]; then
+		       echo "$PWD/$i"
+		   fi
+	       done)
+    mpv $playlist
+    unset IFS
+else
+    # 2 matches means one or more candidates were found
+    if [[ $(echo "$query" | wc -l) = 2 ]]
+    then
+	# Check the file type. Plain text means the file is a playlist
+	if [[ $(file -b --mime-type "$file") = "text/plain" ]]
+	then
+	    mpv --playlist="$file"
+	else
+	    dir=$(dirname "$PWD/$file")
+	    file=$(basename "$file")
+
+	    cd "$dir" || exit
+
+	    array=(*)
+
+	    for i in "${!array[@]}"; do
+		if [ "$file" = "${array[$i]}" ]; then
+		    mpv ./* --playlist-start="$i"
+		fi
+	    done
+	fi
+    else
+	# 1 match means no match found so add a fallback. The fallback
+	# works by typing "query" RET when no matches are found. If
+	# matches *are* found, then we have to nullify the candidates
+	# by typing a comma after the query. For example "query," or
+	# "query, playlist".
+	if [[ -n "$file"  ]]; then
+	    mpv --no-video --ytdl-format=worst ytdl://ytsearch10:"$file"
+	fi
+    fi
+fi

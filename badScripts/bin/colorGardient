@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+gradient() {
+	local i
+	for i in {16..51} {51..16}; do
+		# printf sequence...
+	done
+	tput sgr0
+}
+
+gardient
+

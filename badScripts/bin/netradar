@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+ sudo netstat -tup | awk '{print $4, $6, $7}' | cut -d: -f2 | sed '1d' | grep -v 'bootpc'
+
+

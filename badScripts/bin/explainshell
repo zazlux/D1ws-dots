@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# explainshell - faz uma consulta a explainshell.com para
+#                obter a explicação da linha de comando.
+#
+# DEPENDÊNCIA: w3m, grep, xdg-open (se quiser abrir no browser)
+#
+# inspiração:
+# https://gist.github.com/shivansh/a05e3b4152fa75f6f398d423c295edb5
+
+readonly MAIN_URL='https://explainshell.com/explain?cmd='
+
+# se quiser abrir no browser, mude para USE_BROWSER='true'
+readonly USE_BROWSER='false'
+
+# explicação desta função em https://meleu.sh/urlencode/
+urlencode() {
+  local LC_ALL=C
+  local string="$*"
+  local length="${#string}"
+  local char
+
+  for (( i = 0; i < length; i++ )); do
+    char="${string:i:1}"
+    if [[ "$char" == [a-zA-Z0-9.~_-] ]]; then
+      printf "$char" 
+    else
+      printf '%%%02X' "'$char" 
+    fi
+  done
+  printf '\n' # opcional
+}
+
+
+main() {
+  if [[ -z "$1" ]]; then
+    echo "
+ERRO: falta argumento
+Uso: $0 'linha de comando'" >&2
+    exit 1
+  fi
+
+  local url="${MAIN_URL}$(urlencode "$*")"
+
+  if [[ "$USE_BROWSER" == 'true' ]]; then
+    xdg-open "$url"
+    exit "$?"
+  fi
+
+  response=$(w3m -dump "$url")
+  cat -s <(grep -v -e explainshell -e • -e □ -e "source manpages" <<< "$response")
+}
+
+main "$@"

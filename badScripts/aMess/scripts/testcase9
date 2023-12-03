@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+while IFS= read -r -d '' i
+do
+  
+  case "$i" in  
+       *\ * )
+            mv "$i" $(echo $i | tr -s ' ,' '_')
+          ;;
+       *)
+            echo "Nothing to do here"
+          ;;
+  esac
+
+done < <(find . -maxdepth 1 -not -path '*/.*' -not -name '.*' -prune -type f -print0)

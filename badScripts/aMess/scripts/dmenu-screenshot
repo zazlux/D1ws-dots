@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Simple screenshot dmenu script. Depends on imagemagick
+# Author: Newman Sanchez (https://github.com/newmanls)
+
+set -euo pipefail
+
+take_screenshot() {
+    filename="$(date +%Y%m%d_%H%M%S).png"
+    filepath="${ssdir}/${filename}"
+
+    mkdir -p "${ssdir}"
+    import -silent "${@}" "${filepath}"
+
+    [ ! -f "${filepath}" ] && exit 1
+
+    xclip -selection clipboard -t image/png -i "${filepath}" &&
+        notify-send \
+            -i "${filepath}" \
+            -A "xdg-open ${filepath}"=Open \
+            "Screenshot saved" \
+            "You can also paste the image from the clipboard." |
+            bash
+}
+
+ssdir="${HOME}/Pictures/Screenshots"
+timer_delay=3
+options="Fullscreen\nWindow\nSelect region\nTimer (${timer_delay}s)"
+chosen="$(printf "%b\n" "${options}" | dmenu -p "Take screenshot")"
+
+case "${chosen}" in
+    Fullscreen) take_screenshot -window root ;;
+    Window)     take_screenshot -window "$(xdotool getactivewindow)" ;;
+    Select*)    take_screenshot ;;
+    Timer*)     take_screenshot -window root -pause "${timer_delay}" ;;
+esac

@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+getopt -T >/dev/null 2>&1
+if (($? != 4)); then
+     echo "util-linux getopt is not installed.  Aborting." >&2
+     exit 2
+fi

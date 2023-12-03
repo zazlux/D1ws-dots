@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if ping -w -c 2 aosus.org > /dev/null; then
+  printf '%s\n' "up"
+else
+  printf '%s\n' "down"
+fi
+

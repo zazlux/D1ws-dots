@@ -1,0 +1,12 @@
+installing nixOS package manager on void:
+
+su
+xbps-install -Sy nix
+ln -S /etc/sv/nix-daemon /var/service/
+sv up nix-daemon
+init 0
+boot up again
+su
+nix-channel --list
+nix-channel --add https://channels.nixos.org/nixos-23.05
+nix-channel --update

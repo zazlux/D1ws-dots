@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo xbps-install -Su -R "https://repo-default.voidlinux.org/current"
+

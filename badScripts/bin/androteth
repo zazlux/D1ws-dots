@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo dhcpcd enp0s20u2
+

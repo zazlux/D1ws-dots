@@ -1,0 +1,481 @@
+#!/usr/bin/env bash
+# Adebar
+# (Android DEvice Backup And Restore)
+# Creating scripts to backup and restore your apps, settings, and more
+# © 2014-2023 by Andreas Itzchak Rehberg
+# Licensed using GPLv2 (see the file LICENSE which should have shipped with this)
+
+# --------------------------------=[ Exit Codes ]=--
+ERR_NO_CONFIG_DIR=1
+ERR_NO_DEVICE=2
+ERR_MULTIPLE_DEVICES=3
+ERR_WRONG_DEVICE=4
+ERR_MISSING_DIR=5
+ERR_BASH_TOO_OLD=6
+
+# #################################[ Configuration ]###
+# ------------------------=[ directories ]=--
+#OUTDIR='.' # OUTDIR is specified via command line (mandatory parameter)
+STORAGE_BASE=
+USERDIR="userApps"
+SYSDIR="sysApps"
+PARTBACKUPDIR="images"
+DOCDIR="docs"
+CONFDIR="conf"
+DATADIR="data"
+CACHEDIR=""
+APPCACHESPLUS=""
+TRANSFER_DIR=""
+DUMMY_BASE=
+
+# -------------------=[ device specifics ]=--
+SERIAL=""
+DEVICE_NAME="MyDroid"
+BACKUP_PASSWORD=""
+DUMMY=
+
+# ---------------------=[ TiBu specifics ]=--
+DEVICE_IP=
+TIBU_PORT="8080"
+TIBU_SDINT="/storage/INTERNAL/Storage-ALL.zip"
+TIBU_SDEXT="/storage/SAMSUNG_EXT_SD_CARD/Storage-ALL.zip"
+TIBU_BACKUPS="/TitaniumBackup-ALL.zip"
+
+# ---------------------------=[ Features ]=--
+MK_APPDISABLE=1
+MK_APPENABLE=1
+MK_USERBACKUP=1
+MK_SYSBACKUP=1
+SKIP_EXISTING_USERBACKUP=0
+SKIP_EXISTING_SYSBACKUP=0
+RETRY_FAILED_BACKUPS=0
+AUTO_BACKUP_SHARED=0
+MK_APPRESTORE_DELAY=p
+MK_AUTOCONFIRM_DELAY=3
+MK_AUTOCONFIRM_SEQUENCE=(22 23)
+MK_XPRIVACY_EXPORT=0
+MK_XPRIVACY_PULL=0
+PULL_SETTINGS=1
+PULL_DATA=1
+MK_TIBU=0
+MK_DEFAULTAPPS=1
+MK_USERAPPS=1
+MK_SYSAPPS=1
+MK_DISAPPS=1
+MK_UNINSTAPPS=1
+MK_SYSAPPS_RETRIEVE_NAMES=0
+MK_INSTALLLOC=1
+MK_DEVICEINFO=1
+MK_DEVICEINFO_SENSORS=1
+MK_DEVICEINFO_PMLISTFEATURES=1
+MK_DEVICEINFO_STATUS=1
+MK_DEVICEINFO_DEVICEPOLICY=0
+MK_RADIO=1
+MK_PARTINFO=1
+MK_PARTBACKUP=0
+PARTITION_SRC="auto"
+
+# Making the verification of bash version here before any error could be triggered
+if [ x$BASH = x ] || [ ! $BASH_VERSINFO ] || [ $BASH_VERSINFO -lt 4 ]; then
+  echo
+  echo "Sorry, but you need Bash version 4 at least, you currently have version ${BASH_VERSION:-(unknown)}."
+  echo "Please update it and relaunch your terminal."
+  echo
+  exit $ERR_BASH_TOO_OLD
+fi
+
+# -------------------=[ UserApp Specials ]=--
+declare -A APP_INSTALL_SRC
+declare -A APP_MARKET_URL
+APP_INSTALL_SRC[org.fdroid.fdroid]="F-Droid"
+APP_INSTALL_SRC[org.fdroid.fdroid.privileged]="F-Droid (Privileged)"
+APP_INSTALL_SRC[cm.aptoide.pt]="Aptoide"
+APP_INSTALL_SRC[com.android.vending]="Google Play"
+APP_INSTALL_SRC[com.google.android.feedback]="Google Play (Feedback)"
+APP_INSTALL_SRC[de.robv.android.xposed.installer]="Xposed"
+APP_MARKET_URL[org.fdroid.fdroid]="https://f-droid.org/packages/%s"
+APP_MARKET_URL[org.fdroid.fdroid.privileged]="https://f-droid.org/packages/%s"
+APP_MARKET_URL[cm.aptoide.pt]=""
+APP_MARKET_URL[com.android.vending]="https://play.google.com/store/apps/details?id=%s"
+APP_MARKET_URL[com.google.android.feedback]="https://play.google.com/store/apps/details?id=%s"
+APP_MARKET_URL[de.robv.android.xposed.installer]="https://repo.xposed.info/module/%s"
+APP_MARKET_URL[unknown]=""
+
+# Misc
+PROGRESS=1
+USE_ANSI=1
+TIMESTAMPED_SUBDIRS=0
+LINK_LATEST_SUBDIR=0
+KEEP_SUBDIR_GENERATIONS=0
+POSTRUN_CMD=""
+APPNAME_CMD=""
+ROOT_BACKUP=0
+ROOT_COMPAT=0
+ROOT_PMDISABLE=0
+AUTO_CONFIRM=0
+AUTO_UNLOCK=0
+BASH_LOCATION="/usr/bin/env bash"
+WIKI_BASE="https://codeberg.org/izzy/Adebar/wiki"
+
+# Internal use / debugging
+_OOPS_LEVEL_ADJUST=0 # 0=no_adjust; increase to "hide" oopses, decrease to force them to be revealed even on lower levels
+_OOPS_REPEAT=0       # whether to show the same "oops'd line" multiple times
+declare -A OOPSES    # array to store which lines where already reported
+
+############################################[ Init ]###
+BINDIR="$(dirname "$(readlink -mn "${0}")")" #"
+LIBDIR="${BINDIR}/lib"
+. "${LIBDIR}/common.lib"
+
+# get user config if exist
+USER_CONF="$HOME/.config/adebar"
+if [[ ! -d "$HOME/.config/adebar" ]]; then
+  USER_CONF="${BINDIR}/config"
+fi
+
+# check parameters
+if [[ "$1" = "-a" || "$1" = "--auto" ]]; then
+  if [[ ! -d "${USER_CONF}" ]]; then
+    echo
+    echo "Sorry, but you can't use automatic config detection with no config directory"
+    echo "created. Please create it first, and have your config files placed there."
+    echo
+    exit $ERR_NO_CONFIG_DIR
+  fi
+  declare -i trc=0
+  for serial in $(adb devices|tail -n +2|awk '{print $1}'); do
+    confi=$(grep -E "^\s*SERIAL=.${serial}.\s*$" "${USER_CONF}/"*  |head -n 1|awk -F ':' '{print $1}')
+    [[ -z "${confi}" ]] && continue # unknown device, i.e. serial not found in any config
+    confi=${confi##*/}
+    $0 $confi
+    trc+=$?
+  done
+  exit $trc
+elif [[ -z "$1" || "$1" = "-h" || "$1" = "--help" ]]; then
+  echo
+  echo "Syntax: $0 <config|target_directory> [suffix]"
+  echo "Syntax: $0 <-a|--auto|-h|--help>"
+  echo
+  if [[ ! -d "${USER_CONF}" || "$1" = "-h" || "$1" = "--help" ]]; then
+    echo "There are no more command-line parameters currently, everything is"
+    echo "controlled via config files. For details, please see the project's"
+    echo "wiki at ${WIKI_BASE}/Configuration"
+    echo
+  fi
+  if [[ -d "${USER_CONF}" ]]; then
+    echo "Available config files:"
+    for con in "${USER_CONF}"/*; do
+      [[ -f "${con}" ]] && echo "- $(basename ${con})"
+    done
+  fi
+  echo
+  exit 0
+else
+  OUTDIR="$1"
+fi
+
+# Checking for config file and sourcing it, if exists
+if [ -d "${USER_CONF}" ]; then
+  if [ -f "${USER_CONF}/$OUTDIR" ]; then # device-specific config
+    . "${USER_CONF}/$OUTDIR"
+  elif [ -f "${USER_CONF}/default" ]; then # default config
+    . "${USER_CONF}/default"
+  fi
+elif [ -f "${USER_CONF}" ]; then # legacy default config
+  . "${USER_CONF}"
+fi
+
+# check whether output directory shall have a suffix
+if [ -n "$2" ]; then
+  OUTDIR="${OUTDIR}${2}"
+  TIMESTAMPED_SUBDIRS=0
+elif [[ $TIMESTAMPED_SUBDIRS -gt 0 ]]; then
+  OUTDIR="${OUTDIR}/$(date +"%Y%m%d%H%M")"
+fi
+
+# Check for "Dummy Device" input
+if [[ -n "${DUMMY}" ]]; then
+  if [[ -n "${DUMMY_BASE}" ]]; then
+    DUMMYDIR="${DUMMY_BASE}/${DUMMY}"
+  else
+    DUMMYDIR="${DUMMY}"
+  fi
+  if [[ ! -d "${DUMMYDIR}" ]]; then
+    echo "You've specified a dummy device named '${DUMMY}', but the corresponding"
+    echo "input directory '${DUMMYDIR}' could not be found. Please correct"
+    echo "and try again."
+    echo
+    exit $ERR_NO_DEVICE
+  fi
+  HAVE_AAPT=0       # no app check in dummy mode
+  PULL_SETTINGS=0   # nothing to pull from dummies
+  MK_PARTBACKUP=0
+  MK_XPRIVACY_EXPORT=0
+  MK_XPRIVACY_PULL=0
+fi
+
+# Check whether a device is connected at all and, if configured, the serial matches
+# No device connected:
+ADBOPTS=""
+
+if [[ -z "${DUMMYDIR}" ]]; then     # do not check when in dummy mode
+  if [ -z "$(adb devices|grep -E "^[0-9A-Za-z.:-]+[[:space:]]+device[[:space:]]*$"|awk '{print $1}')" ]; then
+    echo "No device found. Make sure you have connected your device with"
+    echo "USB debugging enabled, and try again."
+    echo
+    exit $ERR_NO_DEVICE
+  fi
+
+  serials=($(adb devices|grep -E "^[0-9A-Za-z.:-]+[[:space:]]+device[[:space:]]*$"|awk '{print $1}'))
+  # Multiple devices connected but no serial defined:
+  if [ -z "${SERIAL}" -a ${#serials[*]} -ne 1 ]; then
+    echo "There are currently multiple devices connected, and we don't know"
+    echo "which one to connect to. Please either disconnect all but the device"
+    echo "you wish to retrieve data from, or specify its serial in your"
+    echo "Configuration. Then try again."
+    echo
+    exit $ERR_MULTIPLE_DEVICES
+  fi
+fi
+
+# SERIAL specified:
+if [ -n "${SERIAL}" ]; then
+  if [ ${#serials[*]} -eq 1 -a "${serials[0]}" != "${SERIAL}" ]; then
+    echo "Your configuration specifies a serial of '${SERIAL}',"
+    echo "but the connected device presents '${serials[0]}'."
+    echo "Please check if you have the correct device connected, or might have"
+    echo "specified the wrong parameter to the script."
+    echo ""
+    exit $ERR_WRONG_DEVICE
+  fi
+  if [ ${#serials[*]} -gt 1 ]; then
+    typeset -i ser=0
+    for d in ${serials[*]}; do
+      [ "$d" = "${SERIAL}" ] && {
+        ser=1
+        break
+      }
+    done
+    if [ $ser -eq 0 ]; then
+      echo "Your configuration specifies a device serial of '${SERIAL}'."
+      echo "Though multiple devices seem to be connected, that is not one"
+      echo "of them. Please check and try again."
+      echo ""
+      exit $ERR_WRONG_DEVICE
+    fi
+  fi
+  ADBOPTS="-s ${SERIAL}"
+fi
+
+# Check output directory and create it if it does not exist
+if [ -n "${STORAGE_BASE}" ]; then
+  OUTDIR="${STORAGE_BASE}/${OUTDIR}"
+fi
+# Check/SetUp other directories we need
+DOCDIR="${OUTDIR}/${DOCDIR}"
+CONFDIR="${OUTDIR}/${CONFDIR}"
+DATADIR="${OUTDIR}/${DATADIR}"
+PKGXML="${CONFDIR}/packages.xml"
+BUILDPROP="${CONFDIR}/build.prop"
+for dir in ${OUTDIR} ${DOCDIR} ${CONFDIR} ${DATADIR}; do
+  if [ ! -d "${dir}" ]; then
+    mkdir -p "${dir}" || {
+      log_error "Directory ${dir} does not exist, and I cannot create it. Sorry."
+      echo
+      exit $ERR_MISSING_DIR
+    }
+  fi
+done
+if [[ -n "${CACHEDIR}" && ! -d "${CACHEDIR}" ]]; then
+  log_warning "CACHEDIR was defined as '${CACHEDIR}' but this does not exist. Caching turned off."
+  CACHEDIR=""
+fi
+
+# What Android version shall we assume (for specific features)? Do not evaluate if user has configured an override.
+[[ -z "${DEVICE_SDKVER}" ]] && {
+  if [[ -n "${DUMMYDIR}" ]]; then
+    DEVICE_SDKVER=$(cat "${DUMMYDIR}/getprop_ro.build.version.sdk")
+  else
+    DEVICE_SDKVER=$(adb ${ADBOPTS} shell "getprop ro.build.version.sdk")
+  fi
+}
+DEVICE_SDKVER=${DEVICE_SDKVER//[$'\t\r\n']}
+
+# not all features are available with all Android versions
+[[ $DEVICE_SDKVER -lt 24 ]] && {    # "cmd package" was introduced with Nougat, "dumpsys webviewupdate" with Oreo
+  MK_DEFAULTAPPS=0
+}
+
+# Load libraries if needed
+. "${LIBDIR}/dummydevs.lib"
+[[ $((${MK_PARTINFO} + ${MK_PARTBACKUP})) -gt 0 ]] && . "${LIBDIR}/partitions.lib"
+[[ $(($PULL_SETTINGS + $MK_XPRIVACY_EXPORT + $MK_XPRIVACY_PULL)) -gt 0 ]] && . "${LIBDIR}/pull_config.lib"
+[[ $PULL_DATA -gt 0 ]] && . "${LIBDIR}/pull_data.lib"
+[[ $MK_TIBU -eq 1 ]] && . "${LIBDIR}/tibu.lib"
+[[ $((${MK_APPDISABLE} + ${MK_APPENABLE} + ${MK_USERBACKUP} + ${MK_SYSBACKUP} + ${MK_INSTALLLOC})) -gt 0 ]] && . "${LIBDIR}/scriptgen.lib"
+[[ ${MK_DEVICEINFO} -gt 0 ]] && . "${LIBDIR}/deviceinfo.lib"
+[[ $((${MK_USERAPPS} + ${MK_SYSAPPS})) -ne 0 ]] && . "${LIBDIR}/packagedata.lib"
+[[ -n "${TRANSFER_DIR}" ]] && . "${LIBDIR}/transfer.lib"
+
+declare -a userApps # list of package names
+declare -a sysApps
+declare -a disApps
+declare -a uninstApps
+
+# Verify root access
+_testroot=$(adb $ADBOPTS shell su -c 'date' 2>/dev/null)
+if [[ $? -eq 0 ]]; then
+  HAVE_ROOT=1
+  doProgress "Root access available." 2
+else
+  HAVE_ROOT=0
+  doProgress "Root access unavailable." 2
+  [[ ROOT_BACKUP -gt 0 ]] && { ROOT_BACKUP=0; echo -e "$(ansi_code "'su' not found on device, resetting ROOT_BACKUP to 0" "yellow")"; }
+  [[ ROOT_COMPAT -gt 0 ]] && { ROOT_COMPAT=0; echo -e "$(ansi_code "'su' not found on device, resetting ROOT_COMPAT to 0" "yellow")"; }
+  [[ ROOT_PMDISABLE -gt 0 ]] && { ROOT_PMDISABLE=0; echo -e "$(ansi_code "'su' not found on device, resetting ROOT_PMDISABLE to 0" "yellow")"; }
+fi
+
+
+#
+# Gather lists of installed apps
+#
+initAppLists() {
+  [[ $(($MK_USERBACKUP + $MK_SYSBACKUP + $MK_DISAPPS + $MK_UNINSTAPPS + $MK_DEFAULTAPPS)) -eq 0 ]] && return
+  doProgress "Gathering lists of installed apps"
+  local apps
+
+  doProgress "- userApps" 2
+  apps=$(getAdbContent pm_list_packages_3 "adb ${ADBOPTS} shell pm list packages -3 2>/dev/null")
+  for app in $apps; do
+    if [[ "${app}" =~ ^package: ]]; then
+      app=${app//[$'\t\r\n']} # remove trailing CR (^M)
+      userApps+=(${app##*:})
+    fi
+  done
+
+  doProgress "- Disabled apps" 2    # disabled only; they are also included with "list [-s]"; in package data they have enabled=3 for the user
+  apps=$(getAdbContent pm_list_packages_d "adb ${ADBOPTS} shell pm list packages -d 2>/dev/null")
+  for app in $apps; do
+    if [[ "${app}" =~ ^package: ]]; then
+      app=${app//[$'\t\r\n']}
+      disApps+=(${app##*:})
+      doProgress "  + ${app##*:}" 4
+    fi
+  done
+
+  doProgress "- systemApps" 2
+  if [[ $DEVICE_SDKVER -lt 11 ]]; then   # up to at least 2.3.3, "pm list packages" only knows of "-f" so no distinction of user/system
+    apps=$(getAdbContent pm_list_packages "adb ${ADBOPTS} shell pm list packages 2>/dev/null")
+  else
+    apps=$(getAdbContent pm_list_packages_s "adb ${ADBOPTS} shell pm list packages -s 2>/dev/null")
+  fi
+  for app in $apps; do
+    if [[ "${app}" =~ ^package: ]]; then
+      app=${app//[$'\t\r\n']}
+      [[ $MK_DISAPPS -ne 0 ]] && in_array "${app##*:}" ${disApps[@]} && continue    # skip disabled apps when separate list was requested
+      sysApps+=(${app##*:})
+    fi
+  done
+
+  # uninstalled is obviously per-user ("pm uninstall --user 0 <packageName>")
+  doProgress "- Uninstalled apps" 2 # installed=false enabled=0 for the given user in package data
+  apps=$(getAdbContent pm_list_packages_u "adb ${ADBOPTS} shell pm list packages -u 2>/dev/null")
+  for app in $apps; do
+    if [[ "${app}" =~ ^package: ]]; then
+      app=${app//[$'\t\r\n']}
+      in_array "${app##*:}" ${sysApps[@]} && continue
+      in_array "${app##*:}" ${userApps[@]} && continue
+      in_array "${app##*:}" ${disApps[@]} && continue
+      uninstApps+=(${app##*:})
+      doProgress "  + ${app##*:}" 4
+    fi
+  done
+}
+
+
+#
+# Post processing
+#
+postProcess() {
+  doProgress "PostProcessing and cleanup"
+  if [[ $TIMESTAMPED_SUBDIRS -gt 0 ]]; then
+    if [[ $LINK_LATEST_SUBDIR -gt 0 ]]; then
+      doProgress "- Symlink latest generation" 2
+      local LINK_NAME="$(dirname "${OUTDIR}")/latest"
+      if [ -L "${LINK_NAME}" -o ! -e "${LINK_NAME}" ]; then
+        rm -f "${LINK_NAME}" > /dev/null 2>&1
+        ln -sf "$(basename "${OUTDIR}")" "${LINK_NAME}"
+      else
+        doProgress "$(ansi_code "! Cannot symlink latest generation subdir: some file/directory already uses its name" "red")"
+      fi
+
+      if [[ ${KEEP_SUBDIR_GENERATIONS} -gt 0 ]]; then
+        doProgress "- Remove outaged generations" 2
+        declare -a GENS
+        cd "$(dirname ${OUTDIR})"
+        for d in $(ls -dpX [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]); do
+          [[ ${#d} -ne 13 ]] && continue
+          GENS+=($d)
+        done
+        declare -i counter=0
+        if [[ ${#GENS[@]} -gt ${KEEP_SUBDIR_GENERATIONS} ]]; then
+          local HAVE_BACKUPS
+          local files
+          while [[ ${#GENS[@]} -gt ${KEEP_SUBDIR_GENERATIONS} ]]; do
+            # We do not want to delete real backups, so make sure there are none
+            HAVE_BACKUPS=0
+            files=(${GENS[${counter}]:0:12}/${USERDIR}/*) # UserApps
+            [[ -e "${files[0]}" ]] && HAVE_BACKUPS=1
+            files=(${GENS[${counter}]:0:12}/${SYSDIR}/*)  # SysApps
+            [[ -e "${files[0]}" ]] && HAVE_BACKUPS=1
+            files=(${GENS[${counter}]:0:12}/*.ab)         # Any ADB backups
+            [[ -e "${files[0]}" ]] && HAVE_BACKUPS=1
+            files=(${GENS[${counter}]:0:12}/*.gz)         # Any .gz archives, e.g. converted by ab2tar
+            [[ -e "${files[0]}" ]] && HAVE_BACKUPS=1
+            if [[ $HAVE_BACKUPS -eq 0 ]]; then
+              doProgress "  + Removing '${GENS[${counter}]:0:12}'" 3
+              rm -rf "${GENS[${counter}]:0:12}"
+            else
+              warning="  + '${GENS[${counter}]:0:12}' seems to contain backups. Renaming it to '${GENS[${counter}]:0:12}.Backup'"
+              log_warning "$warning"
+              mv "${GENS[${counter}]:0:12}" "${GENS[${counter}]:0:12}.Backup"
+            fi
+            unset GENS[${counter}]
+            counter+=1
+          done
+        fi
+        cd - >/dev/null
+      fi
+    fi
+  fi
+
+  if [[ -n "${POSTRUN_CMD}" ]]; then
+    doProgress "- Executing post-run command" 2
+    $(${POSTRUN_CMD})
+  fi
+}
+
+
+############################################[ Main ]###
+echo
+doProgress "$(ansi_code "Adebar running:" "bold")"
+initAppLists
+[[ ${MK_APPDISABLE} -gt 0 ]] && getDisabled
+[[ ${MK_APPENABLE} -gt 0 ]] && getEnable
+[[ ${MK_INSTALLLOC} -gt 0 ]] && getInstallLoc
+[[ $((${MK_PARTINFO} + ${MK_PARTBACKUP})) -gt 0 ]] && getPartInfo
+[[ ${MK_PARTBACKUP} -gt 0 ]] && writePartDumpScript
+[[ ${MK_DEVICEINFO} -gt 0 ]] && getDeviceInfo
+[[ $PULL_SETTINGS -eq 1 ]] && getSettings
+[[ $PULL_DATA -eq 1 ]] && getData
+[[ $(($MK_XPRIVACY_EXPORT + $MK_XPRIVACY_PULL)) -gt 0 ]] && getXPrivacy
+[[ $MK_TIBU -eq 1 ]] && getTibu
+[[ -n "${TRANSFER_DIR}" ]] && doTransfer
+[[ $((${MK_USERAPPS} + ${MK_SYSAPPS})) -ne 0 ]] && getAppDetails
+[[ ${MK_USERBACKUP} -gt 0 ]] && getUserAppBackup
+[[ ${MK_SYSBACKUP} -gt 0 ]] && getSystemAppBackup
+postProcess
+doProgress "$(ansi_code "Adebar done." "bold")"
+echo
+
+exit 0

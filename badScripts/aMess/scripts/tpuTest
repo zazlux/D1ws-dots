@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cols() { tput cols; }
+rows() { tput lines; }
+echo $(cols)
+echo $(rows)

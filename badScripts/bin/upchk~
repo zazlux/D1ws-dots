@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+NOTIFY_ICON=/usr/share/icons/Papirus/32x32/apps/system-software-update.svg
+
+get_total_updates() { UPDATES="$(xbps-install -Su --dry-run | wc -l 2> /dev/null)" ; }
+
+sleep 1
+
+
+get_total_updates
+
+if (( UPDATES > 25 )); then
+      notify-send -u normal  -i $NOTIFY_ICON \
+      "You should update soon" "$UPDATES New packages"
+elif (( UPDATES > 2 )); then
+        notify-send -u low -i $NOTIFY_ICON \
+        "$UPDATES New packages"
+        sleep 3
+        exit 0
+fi
+

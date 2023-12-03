@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+
+load=$(cat /proc/loadavg  | awk '{print $1}' | cut -d'.' -f1 ) 
+if [ $load -gt 5 ]  
+then 
+        echo "lxer" 
+fi
+

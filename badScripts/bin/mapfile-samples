@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+arr=(aa bb hh dd aa bb)
+printf '%s\n' "${arr[@]}"
+readarray -t arr < <( printf '%s\n' "${arr[@]}" | sort | uniq -u )
+printf '%s\n' "${arr[@]}"
+
+#!/bin/bash
+arr=(aa bb hh dd aa bb)
+mapfile -d '' arr2 < <(printf '%s\0' "${arr[@]}" | sort -z | uniq -zu)
+printf '%s\n' "${arr2[@]}"
+
+

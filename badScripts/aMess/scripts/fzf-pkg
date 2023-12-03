@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+pkg search . | awk '{print $2}' | fzf -m --ansi --color fg:-1,bg:-1,hl:46,fg+:40,bg+:233,hl+:46 --color prompt:166,border:46 --height 40%  --border=sharp --prompt="➤  " --pointer="➤ " --marker="➤ "| xargs -I{} pkg install -y {}
+

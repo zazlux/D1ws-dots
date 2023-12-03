@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+calcsize()
+{
+  size=`ls -ksl $1 | awk '{print $1}'`
+  echo $size
+}
+
+calcsize

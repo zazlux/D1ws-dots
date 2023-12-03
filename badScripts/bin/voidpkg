@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+xbps-query -Mi --repository=https://repo-fastly.voidlinux.org/current/ -s\* | fzf
+

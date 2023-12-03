@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+update=$(doas pacman -Syu & sleep 5& n >/tmp/up.txt &cat /tmp/up.txt | grep Download | cut -d ' ' -f 2-6)
+
+while ;
+
+if [[ $update ]]
+then
+notify-send -t 5000   " Update available : $update"
+fi
+
+

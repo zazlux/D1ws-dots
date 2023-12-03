@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+curl cheat.sh/"$@" | less -R
+

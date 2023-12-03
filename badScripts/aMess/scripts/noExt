@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+dest="$HOME/Downloads"
+
+find . -maxdepth 1 -not -path '*/.*' -not -name '.*' -not -type d -type f -prune -exec bash -c 'for f 
+do 
+  if [[ $(file "$f") =~ ": Bourne-Again shell script" ]]; then
+    echo mv -vn "$f" "$dest/scripts"
+  elif [[ $(file "$f") =~ ": ASCII text" ]]; then
+    echo mv -vn "$f" "$dest/documents"
+  fi
+done' bash '{}' +
+
+

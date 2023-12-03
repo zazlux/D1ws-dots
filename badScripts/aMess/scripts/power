@@ -1,0 +1,3 @@
+#! /bin/sh
+
+$(cat ~/docs/sys/gits/scripts-dotfiles/files/poweroptions | fzf --reverse | cut -d\, -f2)

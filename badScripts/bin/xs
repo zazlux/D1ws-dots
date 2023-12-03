@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+package="$1"
+xbps-query --regex -p pkgver -Rs "^$package" | cut -d ":" -f1
+

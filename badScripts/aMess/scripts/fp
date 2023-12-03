@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Fuzzy find images with a preview.
+
+dep_ck () {
+	for dep; do
+		if ! command -v "$dep" 1>/dev/null; then
+			printf "%s is not installed\n" "$dep" >&2
+			exit
+		fi
+	done
+	unset dep
+}
+# https://github.com/seebye/fzf-ueberzogen
+dep_ck "fzf" "ueberzug" "fzf-ueberzogen.sh"
+
+function draw_preview {
+    local -A add_preview_command=( \
+				   [identifier]="images" \
+                                   [scaler]=contain [scaling_position_x]=0.5 [scaling_position_y]=0.5 \
+				   [path]="$@")
+    ADD_PLACEMENT add_preview_command
+}
+
+options="--color=always --type f"
+FZF_DEFAULT_COMMAND="LS_COLORS=$LS_COLORS:'di=0;34' fdfind $options \
+						    -e jpg -e png | shuf"
+
+export -f draw_preview
+
+if [ $# -eq 0 ]; then
+    # Find images in the current directory
+    fzf-ueberzogen.sh --preview 'draw_preview {}' \
+		      --ansi --bind 'ctrl-m:execute:(openwith {})'
+else
+    while [ ! $# -eq 0 ]; do
+	case "$1" in
+	    --shuffle | -s)
+		# Randomize file list
+		fdfind -0  | xargs -0 feh -Tss
+		;;
+	    --default | -d)
+		# Find images in the Pictures folder
+		cd ~/Pictures || exit
+		fzf-ueberzogen.sh --preview 'draw_preview {}' \
+				  --ansi --bind 'ctrl-m:execute:(openwith {})'
+		;;
+	esac
+	shift
+    done
+fi

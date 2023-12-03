@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+xbps-install -Su --dry-run | wc -l
+

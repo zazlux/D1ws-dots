@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+Var1=(
+  "tree"
+  "   "
+  "apple"
+)
+#[[ -z "$Var1" ]] && echo "Empty" || echo "Not empty"
+#[[ -z "$Var2" ]] && echo "Empty" || echo "Not empty"
+#[[ -z "$Var3" ]] && echo "Empty" || echo "Not empty"
+
+for v in ${Var1[@]}; do
+    [[ -z "$v" ]] && echo "empty" || echo "not empty"
+done

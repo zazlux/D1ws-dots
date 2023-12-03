@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+URL="$1"
+
+read -p "Please Enter a file extension ? " exten
+
+case "$exten" in
+       sh|.sh) wget -r -np -R "index.html*" -A ".sh" "$URL" || wget -r -np -R "index.html*" --no-check-certificate -A ".sh" "$URL"
+           ;;
+     pdf|.pdf) wget -r -np -R "index.html*" -A ".pdf" "$URL" || wget -r -np -R "index.html*" --no-check-certificate -A ".pdf" "$URL"
+           ;;
+     txt|.txt) wget -r -np -R "index.html*" -A ".txt" "$URL" || wget -r -np -R "index.html*" --no-check-certificate -A ".txt" "$URL"
+           ;;
+            *) exit 0
+esac 
+

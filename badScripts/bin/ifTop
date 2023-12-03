@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo iftop -i wlp0s20u6 -P
+

@@ -1,0 +1,19 @@
+#! /bin/sh
+
+# ----------
+# WORLD TIME
+# A script to display time across the world
+# ----------
+
+echo ''
+echo ' <       TIME ACROSS THE WORLD       > '
+echo '+-------------------------------------+'
+echo '|   COUNTRY   |   TIME   |    DATE    |'
+echo '+-------------------------------------+'
+echo "| Qatar		$(TZ='Asia/Qatar' date +%H:%M:%S\	%d/%m) |"
+echo "| Sharjah	$(TZ='Asia/Dubai' date +%H:%M:%S\	%d/%m) |"
+echo "| Hyderabad	$(TZ='Asia/Kolkata' date +%H:%M:%S\	%d/%m) |"
+echo "| Malaysia	$(TZ='Asia/Kuala_Lumpur' date +%H:%M:%S\	%d/%m) |"
+echo "| Australia	$(TZ='Australia/Sydney' date +%H:%M:%S\	%d/%m) |"
+echo "| Chicago	$(TZ='America/Chicago' date +%H:%M:%S\	%d/%m) |"
+echo '+-------------------------------------+'

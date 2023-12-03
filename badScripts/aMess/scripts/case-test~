@@ -1,0 +1,25 @@
+#!/usr/bin/bash -x
+
+# remove any whitspace in file names. its a headache :) 
+for i in $(find . -maxdepth 1 -not -path '*/.*' -type f )  
+do 
+  echo mv "$i" $(echo $i | tr -s ' ,' '_') 
+done
+
+# remove non-ascii character
+
+for file in $(find . -maxdepth 1 -not -path '*/.*' -type f )
+do
+  echo mv $file $(echo $file | sed -e 's/[^A-Za-z0-9._-]/_/g')
+done
+
+
+#for f in $(find . -maxdepth 1 -not -path '*/.*' -type f)
+# do  
+#case "${f##*.}" in 
+#png) echo mv -nv $f $HOME/Downloadsi/images ;;
+#mp4) mv -nv "$f" $HOME/Downloads/videos ;;
+#txt) echo mv -nv $f $HOME/Downloads/Documents ;;
+#*) echo "Do nothing" ;;
+#esac
+#done

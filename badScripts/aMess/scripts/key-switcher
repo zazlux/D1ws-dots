@@ -1,0 +1,11 @@
+#!/bin/bash 
+ 
+key_test=$(setxkbmap -print | grep xkb_symbols | cut -d'+' -f2) 
+ 
+if [ $key_test = "fr" ] 
+then     
+    setxkbmap fr 
+else  
+   [ $key_test = "ara" ] 
+    setxkbmap ara 
+fi 

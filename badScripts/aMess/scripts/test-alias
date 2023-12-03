@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+echo; ( /usr/bin/bash "${bob[@]}" /proc/self/fd/9 9<<\EOF9 )
+enable fdflags
+fdflags -s +cloexec 9
+for sh in {ba,{m,}k}sh; do
+        fdreserve 1 \
+                importas f0 FD0 \
+                redirfd -u \${f0} /proc/self/fd/1 \
+                redirfd -u 2 /dev/null \
+                strace -DDZYyyfe trace=%process,%%stat -o /proc/self/fd/\${f0} -- \
+                "$sh" -c 'command -p -- "$1"' _ $'\x01'
+done
+EOF9

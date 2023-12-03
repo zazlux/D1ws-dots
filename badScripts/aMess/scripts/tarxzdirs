@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+for dir in */
+do
+    base=$(basename "$dir")
+    if [ -f ${base}.tar.xz ]
+    then
+        echo ${base}.tar.xz exists Skipping ...
+    else
+        XZ_OPT=-e9T0 tar -cJvf "${base}.tar.xz" "$dir"
+    fi
+done

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+amixer -c 1 set Headphone unmute

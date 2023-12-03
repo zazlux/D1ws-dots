@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+echo -e '\e[3;38m' 
+echo "        ┌───────────────────────────────────┐"
+echo "        │   Taking Screenshot. Say Cheese!  │ "
+echo "        └───────────────────────────────────┘"
+echo "       ╱"
+echo "   ▀▄   ▄▀"
+echo -e "  ▄█▀███▀█▄ "
+echo -e " █▀███████▀█"
+echo -e " ▀ ▀▄▄ ▄▄▀ ▀"
+echo -e '\e[13;37m'
+
+scrot -s -cd 5 '%Y-%m-%d--%s_$wx$h_scrot.png' -e 'mv $f ~/Pictures/scrot/ & feh -F ~/Pictures/scrot/$f'

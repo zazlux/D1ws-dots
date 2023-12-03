@@ -1,0 +1,50 @@
+#!/bin/bash
+###################################################################### 
+#Copyright (C) 2022  Kris Occhipinti
+#https://filmsbykris.com
+
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see <http://www.gnu.org/licenses/>.
+###################################################################### 
+
+dir="$HOME/.fbk"
+history_file="$dir/ytplay.hst"
+mkdir -p "$dir"
+
+function add2history(){
+  echo ": $(date +%s):0;$0 '$url'" >> $HOME/.zsh_history
+  title="$(youtube-dl --skip-download --print-json --no-warnings "$url"|jq .title)"
+  echo "$(date +%s)|$title|$url" >> $history_file
+  notify-send -t 3000 --icon=video-television "Playing Video" "$title\n$url";
+}
+
+function viewhistory(){
+  cat "$history_file"|\
+    grep "http"|\
+    fzf|\
+    sort -r|\
+    cut -d\| -f3
+}
+
+[[ "$1" == "history" ]] && url="$(viewhistory)"
+
+[[ $url != *"http"* ]] && url="$(xclip -selection "clipboard" -o)"
+[[ $url != *"http"* ]] && exit 1
+
+notify-send -t 1000 --icon=video-television "Loading Video" "$url";
+add2history "$url" &
+
+mpv --ytdl-format=22 --fs "$url" ||\
+  mpv --ytdl-format=18 --fs "$url" ||\
+  mpv --fs "$url"
+

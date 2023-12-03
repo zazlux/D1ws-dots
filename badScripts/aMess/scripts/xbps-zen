@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+package=$(zenity --list --checklist \
+--column "ii" --column "Name" --column "Version" --column "Description" \
+--print-column=2 --width=1200 --height=400 < <(while read item1 item2 item3 item4 ; do 
+printf "%s\n%s\n%s\n%s\n" $item1 $item2 $item3 "$item4" ; 
+done < <(xbps-query -Rs | fzf)))
+
+xbps-query -S  $package
+
+#pacote=$(zenity --list --checklist \
+#--column "ii" --column "Nome" --column "Versão" --column "Arquit" --column "Descrição" \
+#--print-column=2 --width=1200 --height=400 < <(while read item1 item2 item3 item4 item5; do 
+#printf "%s\n%s\n%s\n%s\n%s\n" $item1 $item2 $item3 $item4 "$item5" ; 
+#done < <(dpkg -l | sed -n '6,$p')))
+#echo apt remove $pacote

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+# some colors
+red=$'\033[0;31m'
+green=$'\033[0;32m'
+yellox=$'\033[0;33m'
+blue=$'\033[0;34m'
+normal=$'\033[0m'      # No Color
+
+
+
+# اذاعة فتاوى الشيخ ابن عثيمين رحمه الله
+URL1="https://server3.quraan.us:8012/;*.mp3"
+
+# اذاعة تفسير الشيخ السعدي رحمه الله
+URL2="https://server03.quran.com.kw:7004/;*.mp3"
+
+# اذاعة التفسير الميسر
+URL3="https://server03.quran.com.kw:7042/;*.mp3"
+
+
+radio1 () {
+    mpv -no-video "$URL1"
+}
+
+radio2 () {
+    mpv -no-video "$URL2"
+}
+
+radio3 () {
+    mpv -no-video "$URL3"
+}
+
+# Main menu
+while true; do
+        echo "${green}Radio Channels List Menu${normal}:"
+        echo "${blue}1 - Fatwa_Ibn_Othaimin${normal}:"
+        echo "${blue}2 - Tafsir_Ibn_Saadi${normal}:"
+        echo "${blue}3 - Tafsir_Al-Moyssar${normal}:"
+        echo "${blue}4 - Exit${normal}:"
+        
+        read -p "Please select an option (1/2/3/4): " choice
+
+        case $choice in
+                1)
+                       radio1
+                       ;;
+                2)
+                       radio2
+                       ;;
+                3)     
+                       radio3
+                       ;;
+                4)
+                       echo "${red}Exiting ....right now.${normal}"
+                       exit 0
+                       ;;
+                *)
+                       echo "${green}I dont know how to do that!.${normal}"
+                       ;;
+        esac
+done
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+options="Whole Screen\nArea\nShow Last Screenshot"
+dm="dmenu -i -c -l 10"
+selection="$(printf "$options" | $dm )"
+file_name="Screenshot_$(date +%Y%m%d-%H%M%S)"
+pics_dir="$(xdg-user-dir PICTURES)"
+screenshot_dir="$pics_dir/screenshots"
+
+case "$selection" in
+	"Whole Screen") import -window root "$screenshot_dir"/"$file_name".png;;
+	"Area") import "$screenshot_dir"/"$file_name".png;;
+	"Show Last Screenshot") xdg-open "$(find """$screenshot_dir"""/* | tail -1)";;
+esac
+

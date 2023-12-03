@@ -1,0 +1,27 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+alias ls='ls --color=auto'
+alias ff='exec firefox & exit'
+alias syua='yaourt -Syua'
+alias update='yaourt -Syua'
+alias yo='yaourt -S '
+alias wireshark='tshark'
+alias vid='exit & cvlc -V caca '
+alias music='ncmpcpp'
+alias pic='exit & feh '
+alias lock='i3lock -i Pictures/lock.png & exit'
+alias irc='weechat'
+alias mail='alpine'
+alias matrix='cmatrix -b'
+alias wifi='wicd-curses'
+alias off='sudo shutdown 00'
+alias vm='exec virtualbox & exit'
+
+#PS1='[\u@\h \W]\$ '
+
+export PS1="\[\e[00;31m\]\u\[\e[0m\]\[\e[00;m\]@\h \w \[\e[0m\]\[\e[00;34m\]\$ \[\e[0m\]"

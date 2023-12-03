@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+replace() {
+  local dir="${1}"
+  local type=".${2}"
+  echo "Replacing ${type} entries with dds."
+  for file in "$(grep -HRPs --files-with-matches "${type}" "${dir}")"; do
+    echo "File \"${file}\"."
+    sed -i "s/.${type}/.doc/g" "${file}"
+  done
+  unset file
+  unset dir
+  unset type
+}
+
+replace

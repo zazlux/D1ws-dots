@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+
+TIMEFORMAT='%Rs'; ITERATIONS=1000
+seq_str=$(seq '1' "$ITERATIONS")
+
+time { for i in $seq_str; do
+  : # Test 1 here
+done; } > /dev/null
+
+time { for i in $seq_str; do
+  : # Test 2 here
+done; } > /dev/null
+
+time { for i in $seq_str; do
+  : # Test 3 here
+done; } > /dev/null
+

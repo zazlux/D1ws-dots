@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+feed=$(xsel -o)
+xclip "https://www.youtube.com/feeds/videos.xml?channel_id="$(echo $feed | cut -d/ -f5)
+
+

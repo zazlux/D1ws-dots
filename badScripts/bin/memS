@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo ps_mem | grep "$@" | cut -d= -f2 | awk '{ print $3": "$1$2 }' | lolcrab
+

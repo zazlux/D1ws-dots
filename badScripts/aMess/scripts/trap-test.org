@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+shopt -s expand_aliases
+source '$HOME/.bashrc'
+
+trap return TERM
+while sleep 1; do 
+    for d in {1..40}; do 
+      echo 'ranhex'
+done 
+
+
+ranhexpid=$!
+sleep 2 
+kill "$ranhexpid"
+done

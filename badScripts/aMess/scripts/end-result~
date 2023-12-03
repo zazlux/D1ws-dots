@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# التأكد من مسارات نقل الملفات
+
+SOURCE=`xdg-user-dir DOWNLOAD || echo $HOME/Downloads`
+#mkdir -p $SOURCE/{videos,audio,scripts,images,documents}
+
+# حذف المساحات البيضاء في أسماء الملفات .
+
+while IFS= read -r -d '' i
+  do
+   
+     case "$i" in
+          *\ * )
+              echo  mv "$i" $(echo $i | tr -s ' ,' '_')
+             ;;
+         *)
+             echo "Nothing to do here"
+            ;;
+    esac
+  
+  done < <(find . -maxdepth 1 -not -path '*/.*' -not -name '.*' -type f -print0)
+
+# نقل الملفات . أعتقد هذه الطريقة أفضل. توجد صيغ ناقصة. يمكن لكم أن تضيفوها.                                                        
+         
+while IFS= read -r -d '' f
+ do
+case "${f##*.}" in
+  jpeg|jpg|png)  mv -vn "$f" $SOURCE/images ;;
+  webm|mp4)  mv -vn "$f" $SOURCE/videos ;;
+  mp3|m4a|opus)  mv -vn  "$f" $SOURCE/music ;;
+  epub|pdf|txt|md)  mv -vn "$f" $SOURCE/documents ;;
+  py|pl|sh|c)  mv -vn "$f" $SOURCE/scripts ;;
+  *) echo "Do nothing" ;;
+esac
+done < <(find . -maxdepth 1 -not -path '*/.*' -type f -print0)
+
+# نقل الملفات التي لا تحمل أي صيغة. اكتفيت بنوعين. هذا ما احتاجه شخصيا.
+
+find . -maxdepth 1 -not -path '*/.*' -not -name '.*' -not -type d -type f -exec bash -c 'for f 
+do 
+  if [[ $(file "$f") =~ ": Bourne-Again shell script" ]]; then
+    echo mv -vn "$f" "$SOURCE/scripts"
+  elif [[ $(file "$f") =~ ": ASCII text" ]]; then
+    echo mv -vn "$f" "$SOURCE/documents"
+  fi
+done' bash '{}' +
+

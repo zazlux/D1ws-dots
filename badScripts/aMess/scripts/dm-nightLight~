@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+dm="dmenu -i -c -l 10"
+options="Normal\n4000k\n3300k\n2500k"
+
+
+temp=$(printf "$options" | $dm )
+
+case "$temp" in
+	Normal) redshift -x >> /dev/null;;
+	"") : ;;
+	"$temp") redshift -P -O "$(echo """$temp""" | sed 's/k//g')" >> /dev/null ;;
+esac
+

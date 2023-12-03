@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+find . \( -name '*.jpeg' -o -name '*.jpg' -o -name '*.mov' -o -name '*.mp4' -o -name '*.png' \) -exec sh -s {} + <<\eof
+for file do
+  perl-rename 's/(.*)(\..*)/\1_'"$(sha256sum "$file" |awk '{print $1}')"'\2/' "$file"
+done
+eof
+
+

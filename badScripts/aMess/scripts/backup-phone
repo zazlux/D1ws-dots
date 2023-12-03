@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Transfer android data to linux using rsync
+
+source=$MTP_PHONE
+dest=~/Documents/backups/phone
+
+if [ ! -d $dest ]
+then
+    echo "$dest doesn't exist"
+    exit
+else
+    cd "$source" || exit
+    rsync -avPh \
+	  --xattrs \
+	  --progress \
+          --fake-super \
+          --perms \
+	  --stats \
+	  --prune-empty-dirs \
+          --exclude=LOST.DIR/ \
+          --exclude=.Trash-1000/ \
+	  --exclude=.cache "$source" "$dest"
+fi

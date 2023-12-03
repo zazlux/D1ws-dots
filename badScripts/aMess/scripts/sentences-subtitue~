@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# A script to replace a sentence in all files in this and all
+# sub-folders (excluding .git folders) with another sentence.
+# Old and new sentences are optional parameters. Without parameters
+# you get asked for the old and new strings.
+
+OLDFORMAT='\033[37;41m'
+#NEWFORMAT='\033[37;42m'
+NEWFORMAT='\e[38;5;33m'
+NOFORMAT='\033[0m'
+
+old=""
+new=""
+files=""
+
+if [[ $# -eq 0 ]] ; then
+	while [[ "$old" == "" ]] ; do
+		read -p "Enter old string: " old
+	done
+	read -p "Enter new string: " new
+else
+	old="${1}"
+	new="${2}"
+fi
+
+files=$(grep -FIrl "$old" --exclude-dir=.git)
+
+if [[ "$files" == "" ]] ; then
+	echo -e "Didn't find any: ${OLDFORMAT}$old${NOFORMAT}"
+	exit 1
+fi
+
+echo
+if [[ "$new" == "" ]] ; then
+	echo "Removing:"
+	echo -e "\t${OLDFORMAT}$old${NOFORMAT}"
+else
+	echo "Replacing:"
+	echo -e "\t${OLDFORMAT}$old${NOFORMAT}"
+	echo "with:"
+	echo -e "\t${NEWFORMAT}$new${NOFORMAT}"
+fi
+echo
+echo "in these files:"
+echo
+echo -e "$files"
+echo
+
+read -p "Do the replacement? (y)es: " answer
+if [[ "$answer" != y* ]] || [[ "$answer" == "" ]] ; then
+	echo "Abort!"
+	exit 1
+fi
+
+# Escape 'special' characters in old and new string
+old=$(printf '%s\n' "$old" | sed -e 's/[]\/$*.^[]/\\&/g');
+new=$(printf '%s\n' "$new" | sed -e 's/[\/&]/\\&/g')
+
+echo "$files" | xargs --delimiter='\n' sed -i "s/$old/$new/g"
+
+# Escape 'special' characters in old and new string
+old=$(printf '%s\n' "$old" | sed -e 's/[]\/$*.^[]/\\&/g');
+new=$(printf '%s\n' "$new" | sed -e 's/[\/&]/\\&/g')

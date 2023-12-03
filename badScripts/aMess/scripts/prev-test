@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+echo " "
+date
+echo " "
+pwd
+echo " "
+echo 'if th is work. the previous command will be repeated.which is me'
+!!
+echo " "
+uname -a
+echo " "
+inxi -G
+echo
+fc -e : -1

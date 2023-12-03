@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+############################
+#                          #
+# DuckDuckGo Search Script #
+#                          #
+# Search DuckDuckGo on cli #
+# Output =  DDGresults.txt #
+#                          #
+############################
+SEARCH=$1
+SEARCH=${SEARCH// /+}
+wget -O temp.html -q https://duckduckgo.com/html/?q=$SEARCH
+cat temp.html | grep href >> temp.html
+sed -i -e 's/%3A/:/g' temp.html
+sed -i -e 's#%2F#/#g' temp.html
+sed -i -e 's/%2D/-/g' temp.html
+sed -i -e 's#/l/?kh=-1&amp;uddg=##g' temp.html
+cat temp.html | grep -Po '(?<=href=")[^"]*' | grep http > tmplinks.txt
+sort -u tmplinks.txt | grep -vi duckduckgo | grep -v duck.co > DDGresults.txt
+rm temp.html
+rm tmplinks.txt
+cat DDGresults.txt

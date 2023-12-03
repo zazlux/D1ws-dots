@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#         row from df-h input v
+hd_space="$(df -h | awk '(NR==5){print $4}')"
+#              column from df -h output ^
+
+echo " $hd_space"
+

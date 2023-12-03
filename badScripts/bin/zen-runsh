@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")"
+script=$(zenity --list --height=900 --title="Scripts Menu" --hide-header --column="Files" *.sh)
+kitty -- $PWD/$script
+

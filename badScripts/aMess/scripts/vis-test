@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+
+printf '%s\n' "Testing a new editor vi-like for plan9"
+
+pwd
+# awk test
+#!/usr/bin/awk -f
+
+BEGIN { print "Don't worry!" }
+
+sleep 2
+
+du -hs Downloads/* | head

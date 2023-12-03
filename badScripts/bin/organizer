@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+dest="$HOME/Downloads"
+
+while IFS= read -r -d '' f
+ do
+case "${f##*.}" in
+  gif|jpeg|jpg|png)  mv -vn "$f" $dest/images ;;
+  zip|tar.xz|tar.bz2|tar.gz|rar)  mv -vn "$f" $dest/archives ;;
+  mkv|webm|webp|mp4)  mv -vn "$f" $dest/videos ;;
+  torrent)  mv -vn "$f" $dest/videos ;;
+  mp3|m4a|opus)  mv -vn  "$f" $dest/music ;;
+  log|html|xml|epub|pdf|txt|md)  mv -vn "$f" $dest/documents ;;
+  awk|py|pl|sh|c)  mv -vn "$f" $dest/scripts ;;
+  *) echo "Do nothing" ;;
+esac
+done < <(find . -maxdepth 1 -not -path '*/.*' -type f -prune -print0)
+

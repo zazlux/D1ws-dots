@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+package=$(zenity --list --checklist \
+--column "ii" --column "Name" --column "Version" --column "Description" \
+--print-column=2 --width=1200 --height=400 < <(while read item1 item2 item3 item4 item5; do 
+printf "%s\n%s\n%s\n%s\n%\n" "$item1 $item2 $item3 $item4 $item5" ; 
+done < <(xbps-query -l | head -6)))
+
+echo xbps-remove  $package
+

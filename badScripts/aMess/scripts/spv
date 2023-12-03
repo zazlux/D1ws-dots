@@ -1,0 +1,16 @@
+#!/bin/bash
+
+package="${1}"
+
+search() {
+  pkg="${1}"
+  result="$(xbps-query -Rs ${pkg})"
+  if [[ -z "${result}" ]]; then
+    exit 1
+  else
+    echo "${result}"
+    return 0
+  fi
+}
+
+search "${package}"

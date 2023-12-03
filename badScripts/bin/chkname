@@ -1,0 +1,106 @@
+#!/usr/bin/bash
+
+# chkname
+# - written by azman@my1matrix.org
+# - check file/path name to remove whitespaces (option to convert lowercase)
+
+MY1TOOL="$(basename $0 .sh)"
+MY1PATH="$(dirname $0)"
+
+DO_HERE=0
+DO_LOWER=0
+DO_EXEC=0
+DO_DOTS=0
+DO_PAREN=0
+
+while [ ! -z "$1" ] ; do
+	case $1 in
+		--here) DO_HERE=1 ;;
+		--exec) DO_EXEC=1 ;;
+		--dots) DO_DOTS=1 ;;
+		--brackets) DO_PAREN=1 ;;
+		--lowercase) DO_LOWER=1 ;;
+		-|*) echo "* Unknown option '$1'!" ;;
+	esac
+	shift
+done
+
+chk_name()
+{
+	local conv extd temp
+	# check whitespace (default)
+	conv="$(echo "$1"|tr ' ' '_')"
+	# remove dots except extension... IF requested
+	if [ $DO_DOTS -ne 0 ] ; then
+		extd="${conv##*.}"
+		[ "$extd" = "$conv" ] && extd=
+		temp="${conv%.${extd}}"
+		[ ! -z "$extd" ] && extd=".$extd"
+		conv="$(echo "$temp"|tr '.' '_')${extd}"
+	fi
+	# remove brackets... IF requested
+	[ $DO_PAREN -ne 0 ] && conv="$(echo "$conv"|tr '(' '_'|tr ')' '_')"
+	# change lowercase... IF requested
+	[ $DO_LOWER -ne 0 ] && conv="$(echo "$conv"|tr '[A-Z]' '[a-z]')"
+	# remove underscores beside hyphen AND double underscores
+	conv="$(echo "$conv"|sed 's|_-|-|g'|sed 's|-_|-|g'|sed 's|__|_|g')"
+	# spit it out
+	echo "$conv"
+}
+
+chk_file()
+{
+	local path save list loop file conv
+	path=$(pwd)
+	# check files
+	save=$IFS
+	IFS=$'\n'
+	list=($(find . -maxdepth 1 -type f | sed 's|\.\/||g' | sort))
+	IFS=$save
+	for (( loop=0;loop<${#list[@]};loop++ )); do
+		file="${list[$loop]}"
+		conv=$(chk_name "$file")
+		if [ "$conv" != "$file" ] ; then
+			if [ $DO_EXEC -ne 0 ]; then
+				mv "$path/$file" "$path/$conv"
+			else
+				echo "Candidate => '$file' to '$conv'"
+			fi
+		fi
+	done
+}
+
+chk_path()
+{
+	local save list curr loop path conv
+	if [ $DO_HERE -eq 0 ] ; then # check ALL sub-paths
+		save=$IFS
+		IFS=$'\n'
+		list=($(find . -maxdepth 1 -type d | sort))
+		IFS=$save
+		curr=$(pwd)
+		for (( loop=0;loop<${#list[@]};loop++ )); do
+			path="${list[$loop]}"
+			[ "$path" = "." ] && continue
+			path="${path:2}"
+			conv=$(chk_name "$path")
+			#echo "  [CHECK] '$path' => '$conv'"
+			if [ "$conv" != "$path" ] ; then
+				if [ $DO_EXEC -ne 0 ]; then
+					mv "$curr/$path" "$curr/$conv"
+					path="$curr/$conv"
+				else
+					echo "Candidate => '$path' to '$conv'"
+				fi
+			fi
+			cd "$path"
+			chk_path
+			cd "$curr"
+		done
+	fi
+	# process file in this path
+	chk_file
+}
+chk_path
+
+exit 0

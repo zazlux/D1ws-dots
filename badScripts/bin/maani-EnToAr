@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# USAGE: <sript> <keyword>
+
+keyWord="$1"
+
+qutebrowser "https://www.almaany.com/ar/dict/ar-en/"$keyWord"/"
+

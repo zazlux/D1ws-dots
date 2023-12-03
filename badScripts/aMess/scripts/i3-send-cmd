@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+input=$(echo -e “option1\noption2” | rofi -dmenu —selected-row 1)
+notify-send “$input received”

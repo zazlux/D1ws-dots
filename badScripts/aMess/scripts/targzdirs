@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+for dir in */
+do
+      base=$(basename "$dir")
+        tar -czvf "${base}.tar.gz" "$dir"
+    done

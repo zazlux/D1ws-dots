@@ -1,0 +1,4 @@
+#!/usr/bin/bash -c
+
+ ps aux | grep -i 'updates\.sh' | awk '{print $2}' | xargs -n1 kill -9
+

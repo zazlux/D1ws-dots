@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+URL="https://www.last.fm/tag/rnb/tracks"
+timeStamps="$(date)"
+
+#read -p "Please enter a link ? URL
+
+lynx --source "$URL" > $HOME/temp/RNB-TRACKS-SRC.txt
+
+awk -F\" '$0 ~ "data-youtube-url"{ print $2}' $HOME/temp/RNB-TRACKS-SRC.txt > $HOME/temp/directLinks.txt
+
+while read -r url 
+do 
+    #echo "$url"
+    mpv -no-video "$url" 
+    sleep 0.7 
+done <  $HOME/temp/directLinks.txt 
+
+
+
+

@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+dir="output"
+mkdir -p "$dir"
+ 
+[[ $1 ]] && imgs="$*" || imgs="$(ls *.jpg|fzf --prompt "Files: " -m)"
+ 
+echo "$imgs"|tr " " "\n"|while read img
+do
+  echo $img
+  convert "$img" -set colorspace Gray "$dir/$img"
+done
+ 
+xdg-open "$dir"

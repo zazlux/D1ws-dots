@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+URL=$1
+FILE=$2
+#ffpmeg
+ffmpeg -y -i $(youtube-dl $URL -g) -c copy $2.ts

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "john
+jeff
+jerry
+tom
+tim
+sam
+andrew
+kris" > /tmp/names
+
+
+let x=0
+
+cat /tmp/names |while read line
+do
+  if [[ "$name1" != "" ]]
+  then
+    echo "$name1 is before $name2 and $line is after $name2"
+  fi
+    name1="$name2"
+    name2="$line"
+  let x++
+
+done

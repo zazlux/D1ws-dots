@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+
+printf '%s\n' "Please make sure you type the right process command!!!"
+sleep 1
+read -p "Please enter a process command: " pcomm
+
+while true; do
+    PID=$(pidof -s "$pcomm" || cat /proc/sys/kernel/pid_max)
+    if [[ $(ps -p $PID -o %cpu= |grep -Po '^\s*\K[0-9]+') -gt 50 ]]; then
+        echo killing PID $PID
+        kill $PID
+    fi
+    sleep 1
+done
+
+

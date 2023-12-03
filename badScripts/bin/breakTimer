@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# some colors
+red=$'\033[1;31m'
+green=$'\033[1;32m'
+yellow=$'\033[0;33m'
+blue=$'\033[1;34m'
+normal=$'\033[0m'      # No Color
+UNDERLINE=$'\033[4m'
+
+
+# MIN=22;for ((i=MIN*60;i>=0;i--));do echo -ne "\r$(date -d"0+$i sec" +%H:%M:%S)";sleep 1;done
+
+echo "${yellow}Edit the${normal}${blue} 'value'${normal}${yellow} after${normal}${blue} MIN= ${normal}${yellow}to Ajust the timer${normal}. ${blue}hint:${normal} Type ${green}vim${normal} ${red}timer.sh${normal} to Edit" 
+
+[[ "$1" ]] && t="$1" || read -p "Enter the time: " t
+
+MIN="$t" && for i in $(seq $(($MIN*60)) -1 1); do printf "\r%02d:%02d:%02d" $((i/3600)) $(( (i/60)%60)) $((i%60)); sleep 1; done
+
+echo " "
+
+printf '%s\n' "${red}Timer is over.${normal}"
+
+SOMEVAR='Go get some fresh air'  
+
+echo "$SOMEVAR" | gxmsg
+

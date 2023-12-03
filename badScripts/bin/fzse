@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+fzf -d 'do' < "$@" | awk 'NR==1{print }'

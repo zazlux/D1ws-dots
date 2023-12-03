@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+
+
+gxmessage -c -fn mono -file -
+

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+[[ "$1" ]] && q="$1" || read -p "Enter Search Query: " q
+[[ "$q" ]] || exit
+
+pkg="$(xbps-query -Rs "$q" | fzf --prompt "Select Packages: " -m | awk '{ print $2 }' | tr "\n" " ")"
+[[ "$pkg" ]] || exit
+
+pkg="$pkg"
+
+echo "You have selected : "$pkg""
+sleep 0.5 
+
+sudo xbps-install -S "${pkg[@]}"

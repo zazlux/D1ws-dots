@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+mapfile -t numbers < "$1"
+
+for n in "${numbers[@]}"; do
+    echo "$n"
+done
